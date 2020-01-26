@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+#
+# Starts Hadoop DFS daemons
+#
+# chkconfig: 2345 90 10
+# description: Hadoop DFS
+
+#. /lib/lsb/init-functions
+. /etc/init.d/functions
+. /opt/hadoop/etc/hadoop/hadoop-env.sh
+export HADOOP_INSTALL=/home/hadoop/hadoop
+export HADOOP_USER=hadoop
+
+RETVAL=0
+desc="Hadoop DFS daemons"
+
+start() {
+  echo -n $"Starting $desc (hadoop): "
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon start namenode $1"
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon start datanode $1"
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon start secondarynamenode $1"
+}
+
+stop() {
+  echo -n $"Stopping $desc (hadoop): "
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon stop secondarynamenode $1"
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon stop datanode $1"
+  runuser -l $HADOOP_USER -c "$HADOOP_INSTALL/bin/hdfs --daemon stop namenode $1"
+}
+
+checkstatus(){
+ jps |grep -E "(NameNode|DataNode)"
+ #above command return 1 in case the daemon processes are not running
+ RETVAL=$?
+ [ $RETVAL -eq 1 ] &&  echo "$desc Not Running"
+
+}
+
+restart() {
+  stop
+  start
+}
+
+#this can be dangerous in production env. better to format namenode manually if requires
+#accidental use of this function will leave all your data in datanodes orphan.
+
+#format() {
+  #start-stop-daemon --user root
+#  $HADOOP_INSTALL/bin/hadoop namenode -format
+#}
+
+case "$1" in
+  start)
+    start
+    ;;
+  #upgrade)
+  #  upgrade
+  #  ;;
+  #format)
+  #  format
+  #  ;;
+  stop)
+    stop
+    ;;
+  status)
+    checkstatus
+    ;;
+  restart)
+    restart
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 1
+esac
+
+exit $RETVAL
