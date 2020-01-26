@@ -1,0 +1,7 @@
+Accessing Hadoop as different user
+Allowing other users to add file to hdfs 
+ hdfs dfs -mkdir /<user>
+ hdfs dfs -chown -R /<user>
+ 
+ Now the <user> can add the files in the directory 
+ Source : http://hadoopinrealworld.com/fixing-org-apache-hadoop-security-accesscontrolexception-permission-denied/
